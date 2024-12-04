@@ -93,7 +93,7 @@ private:
     void runPythonNode() {
         try {
             // Pythonスクリプトを呼び出す（例: python_script.pyを実行）
-            boost::process::system("python3 /path/to/your/python_script.py");
+            boost::process::system("python3 oacd_chan/search_for_paper.py");
         } catch (const boost::process::process_error& e) {
             RCLCPP_ERROR(this->get_logger(), "Failed to run Python script: %s", e.what());
         }
