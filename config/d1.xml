@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Sequence>
+            <Action ID="SearchForPaper" name="search_for_paper"/>
+            <Action ID="AheadPaper" name="ahead_paper"/>
+            <Parallel failure_threshold="2" name="GOGO" success_threshold="2">
+                <AlwaysSuccess name="Go"/>
+                <Action ID="1.5m" name="1.5m"/>
+            </Parallel>
+            <Action ID="AheadPaper2" name="ahead_paper"/>
+            <Parallel failure_threshold="3" name="Near" success_threshold="3">
+                <Action ID="FourMeter" name="four_meter"/>
+                <Action ID="AlphabetDetect" name="alphabet_detect"/>
+                <Action ID="SlowGo" name="slow_go"/>
+            </Parallel>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="1.5m"/>
+        <Action ID="AheadPaper"/>
+        <Action ID="AheadPaper2"/>
+        <Action ID="AlphabetDetect"/>
+        <Action ID="FourMeter"/>
+        <Action ID="PaperSearch"/>
+        <Action ID="SearchForPaper"/>
+        <Action ID="SlowGo"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
