@@ -27,7 +27,7 @@ using namespace BT;
 int main(int argc, char **argv) {
 
   std::filesystem::path ros_ws_path = std::filesystem::current_path();
-  std::string xml_file_name = "/src/oakd_chan2/config/parallel_root.xml";
+  std::string xml_file_name = "/src/oakd_chan2/config/first.xml";// xml指定？
   std::string xml_path = ros_ws_path.string() + xml_file_name;
 
   rclcpp::init(argc, argv);
