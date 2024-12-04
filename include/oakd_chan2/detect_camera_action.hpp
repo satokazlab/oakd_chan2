@@ -92,7 +92,7 @@ private:
     // Pythonノードを実行するメソッド
     void runPythonNode() {
         try {
-            // Pythonスクリプトを呼び出す（例: python_script.pyを実行）
+            // Pythonスクリプトを呼び出す（例: python_script.pyを実行）パスはこれでいいよ♥
             boost::process::system("python3 src/oakd_chan2/include/oakd_chan2/search_for_paper_nodep.py");
         } catch (const boost::process::process_error& e) {
             RCLCPP_ERROR(this->get_logger(), "Failed to run Python script: %s", e.what());
