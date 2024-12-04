@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
   //Node registration process
   factory.registerNodeType<MoveRobot>("MoveRobot");
-  factory.registerNodeType<CameraDetected>("CameraDetected");
+  factory.registerNodeType<SearchForPaper>("SearchForPaper");
   factory.registerNodeType<ReadingLaser>("ReadingLaser");
   factory.registerNodeType<Rotating>("Rotating");
   factory.registerNodeType<Stop>("Stop");
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   //definiion of smart pointers to
   auto lc_listener = std::make_shared<ReadingLaser>("lc_listener", con);
   auto lc_odom = std::make_shared<Rotating>("lc_odom", con);
-  auto lc_camera = std::make_shared<CameraDetected>("lc_camera", con);
+  auto lc_camera = std::make_shared<SearchForPaper>("lc_camera", con);
   auto lc_stop = std::make_shared<Stop>("lc_stop", con);
 
   // console log

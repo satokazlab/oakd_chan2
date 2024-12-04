@@ -3,12 +3,12 @@
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
-            <Action ID="CameraDetected"/>
+            <Action ID="SearchForPaper"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
-        <Action ID="CameraDetected"/>
+        <Action ID="SearchForPaper"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>

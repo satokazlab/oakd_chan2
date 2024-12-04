@@ -26,9 +26,9 @@ using std::placeholders::_1;
 using namespace BT;
 
 //-------------------------------------------------------------------------------------
-//-------------------------- Class CameraDetected -------------------------------------
+//-------------------------- Class SearchForPaper -------------------------------------
 //-------------------------------------------------------------------------------------
-class CameraDetected : public BT::SyncActionNode, public rclcpp::Node {
+class SearchForPaper : public BT::SyncActionNode, public rclcpp::Node {
 private:
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_;
@@ -100,11 +100,11 @@ private:
     }
 
 public:
-    CameraDetected(const std::string &name, const BT::NodeConfiguration &config)
+    SearchForPaper(const std::string &name, const BT::NodeConfiguration &config)
         : BT::SyncActionNode(name, config), Node("camera_node") {
 
         subscription_ = create_subscription<sensor_msgs::msg::Image>(
-            "/camera/color/image_raw", 10, std::bind(&CameraDetected::imageCallback, this, std::placeholders::_1)
+            "/camera/color/image_raw", 10, std::bind(&SearchForPaper::imageCallback, this, std::placeholders::_1)
         );
     }
 

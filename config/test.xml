@@ -5,7 +5,7 @@
         <Parallel failure_threshold="0" success_threshold="3">
             <Action ID="MoveRobot" sleep_mtime="100"/>
             <Fallback>
-                <Action ID="CameraDetected"/>
+                <Action ID="SearchForPaper"/>
                 <Action ID="ReadingLaser"/>
                 <Inverter>
                     <Action ID="Rotating" input="20" sleep_mtime="100"/>
