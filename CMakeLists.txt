@@ -51,6 +51,12 @@ ament_target_dependencies(tb3_behavior_node
   ${dependencies}
 )
 
+
+
+target_link_libraries(tb3_behavior_node
+    ${Boost_LIBRARIES}
+)
+
 ######################################################
 install(TARGETS
   tb3_behavior_node

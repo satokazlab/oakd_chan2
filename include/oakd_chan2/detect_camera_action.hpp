@@ -1,27 +1,3 @@
-//-----------------------------------------------------------------------------------
-// MIT License
-
-// Copyright (c) 2023 Takumi Asada
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//-----------------------------------------------------------------------------------
-#include <rclcpp/executors.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/int32.hpp"
 #include "sensor_msgs/msg/image.hpp"
@@ -40,6 +16,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <cstdlib>  // std::system
+#include <boost/process.hpp>  // Boost process library
 
 using namespace std::chrono_literals;
 using std::chrono::milliseconds;
@@ -51,7 +29,7 @@ using namespace BT;
 //-------------------------- Class CameraDetected -------------------------------------
 //-------------------------------------------------------------------------------------
 class CameraDetected : public BT::SyncActionNode, public rclcpp::Node {
-  private:
+private:
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
@@ -65,7 +43,7 @@ class CameraDetected : public BT::SyncActionNode, public rclcpp::Node {
             return;
         }
 
-        // TODO TBD
+        // TODO TBD: 色検出のコード（例: 黄色と赤色をターゲット）
         cv::Scalar lower_target_color1(20, 100, 100); // 下限値 (Hue, Saturation, Value)
         cv::Scalar upper_target_color1(30, 255, 255);  // 上限値 (Hue, Saturation, Value)
 
@@ -107,12 +85,21 @@ class CameraDetected : public BT::SyncActionNode, public rclcpp::Node {
                 cmd_vel.linear.x = 0.2;
                 cmd_vel.angular.z = 0.5 * atan2(target_pose.y, target_pose.x);
                 cmd_vel_publisher_->publish(cmd_vel);
-
             }
         }
     }
 
-  public:
+    // Pythonノードを実行するメソッド
+    void runPythonNode() {
+        try {
+            // Pythonスクリプトを呼び出す（例: python_script.pyを実行）
+            boost::process::system("python3 /path/to/your/python_script.py");
+        } catch (const boost::process::process_error& e) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to run Python script: %s", e.what());
+        }
+    }
+
+public:
     CameraDetected(const std::string &name, const BT::NodeConfiguration &config)
         : BT::SyncActionNode(name, config), Node("camera_node") {
 
@@ -122,13 +109,14 @@ class CameraDetected : public BT::SyncActionNode, public rclcpp::Node {
     }
 
     NodeStatus tick() override {
+        publisher_ = this->create_publisher<geometry_msgs::msg::Pose2D>("/target_pose", 10);
+        cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
 
-      publisher_ = this->create_publisher<geometry_msgs::msg::Pose2D>("/target_pose", 10);
-      cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
-      // return NodeStatus::SUCCESS;
-      return NodeStatus::FAILURE;
+        // Pythonノードを実行する
+        runPythonNode();
+
+        return NodeStatus::SUCCESS;
     }
-
 
     static PortsList providedPorts() { return {}; }
 };
