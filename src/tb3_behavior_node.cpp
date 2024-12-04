@@ -1,84 +1,52 @@
-//------------------------------------------------------------------------------------
-//----------------------------------- Include ----------------------------------------
-//------------------------------------------------------------------------------------
-#include <filesystem>
-
-#include "behaviortree_cpp_v3/loggers/bt_file_logger.h"
-#include "behaviortree_cpp_v3/loggers/bt_cout_logger.h"
-#include "behaviortree_cpp_v3/loggers/bt_zmq_publisher.h"
-
-//------------------------------------------------------------------------------------
-//---------------------------- Include Thrid Party -----------------------------------
-//------------------------------------------------------------------------------------
-#include "oakd_chan2/read_laser_condition.hpp"
-#include "oakd_chan2/detect_camera_action.hpp"
-#include "oakd_chan2/move_robot_action.hpp"
-#include "oakd_chan2/rotating_robot_action.hpp"
-#include "oakd_chan2/stop_robot_action.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include "sensor_msgs/msg/image.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/opencv.hpp>
+#include <boost/process.hpp>  // Boost.Processライブラリをインクルード
 
 using namespace std::chrono_literals;
-using std::chrono::milliseconds;
-using std::placeholders::_1;
-std::atomic_bool switchActive{true};
 
-using namespace BT;
+class CameraDetected : public rclcpp::Node {
+private:
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+    rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_;
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
 
+    void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {
+        // Pythonノードの実行
+        execute_python_node();
+    }
 
-int main(int argc, char **argv) {
+    void execute_python_node() {
+        // Pythonスクリプトのパスを指定して実行
+        std::string python_script = "/path/to/your/python_node.py";  // Pythonスクリプトのパス
+        try {
+            boost::process::child c("python3", python_script);
+            c.wait();  // Pythonスクリプトが終了するまで待機
+            RCLCPP_INFO(this->get_logger(), "Python script executed successfully.");
+        } catch (const std::exception &e) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to execute Python script: %s", e.what());
+        }
+    }
 
-  std::filesystem::path ros_ws_path = std::filesystem::current_path();
-  std::string xml_file_name = "/src/oakd_chan2/config/parallel_root.xml";
-  std::string xml_path = ros_ws_path.string() + xml_file_name;
+public:
+    CameraDetected() : Node("camera_node") {
+        // Subscriptionの作成
+        subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
+            "/camera/color/image_raw", 10, std::bind(&CameraDetected::imageCallback, this, std::placeholders::_1)
+        );
 
-  rclcpp::init(argc, argv);
+        // Publisherの作成
+        publisher_ = this->create_publisher<geometry_msgs::msg::Pose2D>("/target_pose", 10);
+        cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+    }
+};
 
- // We use the BehaviorTreeFactory to register our custom nodes
-  BehaviorTreeFactory factory;
-
-  //Node registration process
-  factory.registerNodeType<MoveRobot>("MoveRobot");
-  factory.registerNodeType<CameraDetected>("CameraDetected");
-  factory.registerNodeType<ReadingLaser>("ReadingLaser");
-  factory.registerNodeType<Rotating>("Rotating");
-  factory.registerNodeType<Stop>("Stop");
-
-  // we incorporated the BT (XML format)
-  auto tree = factory.createTreeFromFile(xml_path);
-
-  // PublisherZMQ(const BT::Tree& tree, unsigned max_msg_per_second = 25,
-  //               unsigned publisher_port = 1666, unsigned server_port = 1667);
-  unsigned publisher_port = 1666;
-  unsigned server_port = 1667;
-  BT::PublisherZMQ publisher_zmq(tree, 25, publisher_port, server_port);
-
-  BT::NodeStatus status = BT::NodeStatus::FAILURE;
-  BT::NodeConfiguration con = {};
-
-  //definiion of smart pointers to
-  auto lc_listener = std::make_shared<ReadingLaser>("lc_listener", con);
-  auto lc_odom = std::make_shared<Rotating>("lc_odom", con);
-  auto lc_camera = std::make_shared<CameraDetected>("lc_camera", con);
-  auto lc_stop = std::make_shared<Stop>("lc_stop", con);
-
-  // console log
-  BT::StdCoutLogger logger_cout(tree);
-  // for logging purposes. Details later
-  FileLogger logger_file(tree, "src/oakd_chan2s/log/tb3_bts_trace.fbl");
-  // we spin ROS nodes
-  while (rclcpp::ok() && status == BT::NodeStatus::FAILURE) {
-    rclcpp::spin_some(lc_odom);
-    rclcpp::spin_some(lc_listener);
-    rclcpp::spin_some(lc_camera);
-    rclcpp::spin_some(lc_stop);
-    //we check the status of node
-    status = tree.tickRoot();
-
-    // Groot 4.X
-    // status = tree.tickOnce();
-    // status = tree.tickWhileRunning();
-
-    tree.sleep(std::chrono::milliseconds(200));
-  }
-
-  return 0;
+int main(int argc, char * argv[]) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<CameraDetected>());
+    rclcpp::shutdown();
+    return 0;
 }

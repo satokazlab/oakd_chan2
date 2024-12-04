@@ -19,6 +19,8 @@ find_package(nav2_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 
+find_package(Boost REQUIRED COMPONENTS system)
+
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 
