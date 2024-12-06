@@ -86,28 +86,29 @@ class MoveRobot : public BT::SyncActionNode, public rclcpp::Node {
             odometry_callback(msg);
           });
     }
-
+    // ノードがアクティブになったら実行
     NodeStatus tick() override {
+      //  ポートからの入力取得
       auto res_time = getInput<int>("sleep_mtime");
       if (!res_time) {
         throw RuntimeError("error reading port [sleep_mtime]:", res_time.error());
       }
       int sleep_mtime = res_time.value();
-
+      // パブリッシャー生成
       publisher_ =
           this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
       auto message = geometry_msgs::msg::Twist();
 
       message.linear.x = 0.2;
-      setOutput("linear_x", float(message.linear.x));
+      setOutput("linear_x", float(message.linear.x)); // ポートに出力。他のノードから参照可能に
 
       publisher_->publish(message);
-
+      // スレッドを停止。ロボットが一定時間動作を続ける
       std::this_thread::sleep_for(std::chrono::milliseconds(sleep_mtime));
 
-      return NodeStatus::SUCCESS;
+      return NodeStatus::SUCCESS; // 　親ノードへSUCCESSを返す
     }
-
+    // ノードが提供するポートをリストとして返す
     static PortsList providedPorts() {
       const char *description = "Simply print the target on console...";
       return {
