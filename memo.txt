@@ -1,0 +1,12 @@
+minashigo@satolab:~/ros2_ws$ colcon build --packages-select oakd_chan2
+Starting >>> oakd_chan2
+[Processing: oakd_chan2]                             
+--- stderr: oakd_chan2                                
+/usr/bin/ld: warning: libopencv_imgcodecs.so.4.5d, needed by /opt/ros/humble/lib/libcv_bridge.so, may conflict with libopencv_imgcodecs.so.408
+/usr/bin/ld: warning: libopencv_imgproc.so.4.5d, needed by /opt/ros/humble/lib/libcv_bridge.so, may conflict with libopencv_imgproc.so.408
+/usr/bin/ld: warning: libopencv_core.so.4.5d, needed by /opt/ros/humble/lib/libcv_bridge.so, may conflict with libopencv_core.so.408
+---
+Finished <<< oakd_chan2 [55.7s]
+
+Summary: 1 package finished [56.5s]
+  1 package had stderr output: oakd_chan2
