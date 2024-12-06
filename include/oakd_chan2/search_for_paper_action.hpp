@@ -30,8 +30,8 @@ using namespace BT;
 //-------------------------------------------------------------------------------------
 class SearchForPaper : public BT::SyncActionNode, public rclcpp::Node {
 private:
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
-    rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;// サブスクライバ
+    rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_;// パブリッシャ
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
 
     void imageCallback(const sensor_msgs::msg::Image::SharedPtr msg) {

@@ -8,6 +8,8 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "cv_bridge/cv_bridge.h"
+#include "opencv2/opencv.hpp"
 
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <behaviortree_cpp_v3/tree_node.h>
@@ -17,6 +19,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <cstdlib>  // std::system
+#include <boost/process.hpp>  // Boost process library
 
 using namespace std::chrono_literals;
 using std::chrono::milliseconds;
@@ -62,6 +66,7 @@ class MoveRobot : public BT::SyncActionNode, public rclcpp::Node {
             odometry_callback(msg);
           });
     }
+    
     // ノードがアクティブになったら実行
     NodeStatus tick() override {
       //  ポートからの入力取得
@@ -77,13 +82,64 @@ class MoveRobot : public BT::SyncActionNode, public rclcpp::Node {
 
       message.linear.x = 0.2;
       setOutput("linear_x", float(message.linear.x)); // ポートに出力。他のノードから参照可能に
+      
+      // Pythonノードを実行する
+      runPythonNode();
 
-      publisher_->publish(message);
-      // スレッドを停止。ロボットが一定時間動作を続ける
-      std::this_thread::sleep_for(std::chrono::milliseconds(sleep_mtime));
+      // 任意の条件を設定（例：ロボットの位置や角度が特定の範囲内かどうか）
+        bool condition_met = check_condition();
 
-      return NodeStatus::SUCCESS; // 　親ノードへSUCCESSを返す
+        // 条件に基づいてSUCCESSまたはFAILUREを返す
+        if (condition_met) {
+            message.linear.x = 0.2;
+            setOutput("linear_x", float(message.linear.x));
+            publisher_->publish(message);
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_mtime));
+            // Pythonノードを停止
+            stop_python_node();
+
+            return NodeStatus::SUCCESS; // 条件達成時はSUCCESSを返す
+        } else {
+            return NodeStatus::FAILURE; // 条件未達成時はFAILUREを返す
+        }
     }
+
+    // 任意の条件チェック関数 T or F
+    bool check_condition() {
+        // 条件の例：ロボットが特定の位置にいるか、角度が一定範囲にあるか
+        // ここでは仮にロボットの位置がx = 1.0, y = 2.0に近いかどうかを確認する
+        // 実際の条件に合わせて変更してください。
+        bool condition_met = false;
+        float x = 1.0;  // 仮の位置
+        float y = 2.0;  
+        // ここで仮の位置をチェックする例
+        if (std::abs(x - 1.0) < 0.1 && std::abs(y - 2.0) < 0.1) {
+            condition_met = true;
+        }
+        return condition_met;
+    }
+
+    // Pythonノードを停止する関数
+    void stop_python_node() {
+        if (python_pid != -1) {
+            // PythonノードのプロセスIDが存在する場合、それを終了させる
+            std::string kill_command = "kill " + std::to_string(python_pid);
+            std::system(kill_command.c_str());
+            python_pid = -1;  // プロセスIDをリセット
+            RCLCPP_INFO(this->get_logger(), "Python node stopped.");
+        }
+    }
+
+    // Pythonノードを起動する関数
+    void start_python_node() {
+        // Pythonノードをバックグラウンドで起動する
+        std::string command = "ros2 run your_python_package your_python_node &";
+        std::system(command.c_str());
+
+        // PythonノードのプロセスIDを取得
+        python_pid = std::getpid();
+    }
+
     // ノードが提供するポートをリストとして返す
     static PortsList providedPorts() {
       const char *description = "Simply print the target on console...";
