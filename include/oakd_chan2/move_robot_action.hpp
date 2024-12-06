@@ -52,7 +52,7 @@ using namespace BT;
 //--------------------------Class MOVE_ROBOT-------------------------------------------
 //-------------------------------------------------------------------------------------
 class MoveRobot : public BT::SyncActionNode, public rclcpp::Node {
-  private:
+  private://オドメトリ情報を処理するコールバック関数
     void odometry_callback(const nav_msgs::msg::Odometry::SharedPtr _msg) {
 
       tf2::Quaternion quat_tf;
@@ -71,16 +71,16 @@ class MoveRobot : public BT::SyncActionNode, public rclcpp::Node {
                   _msg->pose.pose.position.x, _msg->pose.pose.position.y);
     }
 
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_; // タイマーを使って定期的に処理を実行する
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_; // 指定したトピックからメッセージを購読してコールバックを呼び出す
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;// 指定したトピックにメッセージを送信する
 
-  public:
+  public: // BTのアクションノードMoveRobotの定義のためのクラス
     MoveRobot(const std::string &name, const BT::NodeConfiguration &config)
         : BT::SyncActionNode(name, config), Node("move_node") {
 
-      auto sensor_qos = rclcpp::QoS(rclcpp::SensorDataQoS());
-
+      auto sensor_qos = rclcpp::QoS(rclcpp::SensorDataQoS()); // QoSの設定
+      // /odomを受け取ったらコールバックを実行
       subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
           "/odom", sensor_qos, [&](const nav_msgs::msg::Odometry::SharedPtr msg) {
             odometry_callback(msg);
