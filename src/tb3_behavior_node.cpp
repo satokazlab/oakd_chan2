@@ -12,7 +12,8 @@
 //------------------------------------------------------------------------------------
 #include "oakd_chan2/read_laser_condition.hpp"// ノード、ファイル名
 #include "oakd_chan2/search_for_paper_action.hpp"
-#include "oakd_chan2/move_robot_action.hpp"
+// #include "oakd_chan2/move_robot_action.hpp"
+#include "oakd_chan2/test.hpp"
 #include "oakd_chan2/rotating_robot_action.hpp"
 #include "oakd_chan2/stop_robot_action.hpp"
 
